@@ -1,3 +1,4 @@
+import pika
 import csv
 import time
 from multiprocessing import Process
@@ -5,15 +6,22 @@ from playwright.sync_api import sync_playwright
 
 NUM_OF_WORKERS = 1
 INPUT_FILE = 'olx_links.csv'
-KAFKA_CONNECTION = 'kafka:29092'
-KAFKA_SCRAPED_DATA_TOPIC = 'unparsed-data'
-KAFKA_SCRAPING_STATUS_TOPIC = 'scraping-progress'
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+channel.queue_declare(queue='scraped-data')
 
 def read_csv(filename):
     with open(filename, 'r', newline='') as file:
         reader = csv.DictReader(file, delimiter=',')
         return [row['url'] for row in reader if row['status'] != 'finished']
-        
+
+def send_scraped_json(message):
+    channel.basic_publish(exchange='',
+                      routing_key='scraped-data',
+                      body=message)
+    print("Data sent to 'scraped-data'")
+
 def scrape_url(page, url, browser):
     scrape_page(page, url)
     go_to_next_page(page, url, browser)
@@ -37,6 +45,7 @@ def scrape_page(page, url):
             page.wait_for_selector('script#__NEXT_DATA__', state='attached')
             script_content = page.evaluate('document.querySelector("script#__NEXT_DATA__").textContent')
             print(script_content)
+            send_scraped_json(script_content)
                
         except Exception as e:
             time.sleep(1)
@@ -74,7 +83,7 @@ def start_process(urls):
             page.close()
             #send_scraping_progress_kafka(url, "finished")
         browser.close()
-
+    connection.close()
     return scraped_data
 
 if __name__ == "__main__":
