@@ -1,6 +1,7 @@
 services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
+    restart: always
     container_name: 'rabbitmq'
     ports:
         - 5672:5672
@@ -10,6 +11,20 @@ services:
         - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
     networks:
         - rabbitmq_go_net
+
+  postgres:
+    image: postgres:16.1
+    restart: always
+    container_name: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=passwd
+      - POSTGRES_DB=property-db
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
 
 networks:
   rabbitmq_go_net:
