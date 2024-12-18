@@ -5,7 +5,7 @@ import math
 from multiprocessing import Process
 from selectolax.parser import HTMLParser
 import cloudscraper
-import utils
+import queue.rabbitmq_client
 import pandas as pd
 
 WORKER_AMOUNT = 4
@@ -15,7 +15,7 @@ SALE_TABLE_NAME = "property_sale"
 
 RESULTS_PER_PAGE = 50
 
-client = utils.RabbitMQClient()
+client = rabbitmq_client.RabbitMQClient()
 
 scraper = cloudscraper.create_scraper(
         browser={
