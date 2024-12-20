@@ -1,4 +1,5 @@
 CREATE TABLE public.property_rent (
+    source text NULL,
     listing_id text NULL,
     title text NULL,
     price float4 NULL,
@@ -25,6 +26,7 @@ CREATE INDEX idx_rent_listing_date ON property_rent (listing_date);
 CREATE INDEX idx_rent_price ON property_rent (price);
 
 CREATE TABLE public.property_sale (
+    source text NULL,
     listing_id text NULL,
     title text NULL,
     price float4 NULL,
